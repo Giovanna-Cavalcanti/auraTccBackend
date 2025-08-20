@@ -96,11 +96,45 @@ const buscarPacientePorCpf = async (req, res) => {
   }
 };
 
+// Login de paciente
+const loginPaciente = async (req, res) => {
+  try {
+    const { email, senha } = req.body;
+
+    if (!email || !senha) {
+      return res.status(400).json({ erro: 'email e senha são obrigatórios' });
+    }
+
+    // Busca paciente pelo email e inclui a senha (que está com select: false)
+    const paciente = await Paciente.findOne({ email }).select('+senha');
+
+    if (!paciente) {
+      return res.status(404).json({ erro: 'Paciente não encontrado' });
+    }
+
+    // Compara senha
+    const senhaValida = await paciente.compararSenha(senha);
+    if (!senhaValida) {
+      return res.status(401).json({ erro: 'Senha incorreta' });
+    }
+
+    // Retorna paciente (sem senha) e mensagem de sucesso
+    const pacienteData = paciente.toObject();
+    delete pacienteData.senha;
+
+    res.status(200).json({ mensagem: 'Login realizado com sucesso', paciente: pacienteData });
+
+  } catch (error) {
+    res.status(500).json({ erro: 'Falha no login', detalhes: error.message });
+  }
+};
+
 export default {
   criarPaciente,
   listarPacientes,
   obterPaciente,
   atualizarPaciente,
   removerPaciente,
-  buscarPacientePorCpf
+  buscarPacientePorCpf,
+  loginPaciente
 };

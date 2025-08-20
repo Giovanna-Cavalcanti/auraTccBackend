@@ -13,4 +13,7 @@ router.get('/:id', pacienteController.obterPaciente);
 router.put('/:id', pacienteController.atualizarPaciente);
 router.delete('/:id', pacienteController.removerPaciente);
 
+// Rota de login
+router.post('/login', pacienteController.loginPaciente);
+
 export default router;
