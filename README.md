@@ -1,4 +1,3 @@
-```markdown
 # 🩺 API AURA - inicial - CRUD de pacientes
 
 Este projeto é uma API desenvolvida em **Node.js** com **Express** e **MongoDB**, para gerenciar informações de pacientes.
@@ -24,7 +23,6 @@ Antes de iniciar, certifique-se de ter instalado em sua máquina:
    ```bash
    node -v
    npm -v
-```
 
 Isso deve retornar as versões do **Node.js** e do  **npm** .
 
