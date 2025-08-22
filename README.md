@@ -1,5 +1,3 @@
-Claro! Aqui está um exemplo de `README.md` bem focado em **configuração e execução do projeto** no Windows:
-
 ```markdown
 # 🩺 API AURA - inicial - CRUD de pacientes
 
