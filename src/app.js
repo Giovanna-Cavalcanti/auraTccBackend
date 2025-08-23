@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import connectDB from './config/db.js';
 import pacienteRoutes from './routes/pacienteRoutes.js';
+import swaggerUi from "swagger-ui-express";
+import fs from "fs";
 
 const app = express();
 
@@ -12,6 +14,12 @@ app.use(express.urlencoded({ extended: true }));
 
 // Conexão com DB
 await connectDB();
+
+// Lê o JSON
+const swaggerDocument = JSON.parse(fs.readFileSync("./docs/swagger.json", "utf-8"));
+
+// Rota do Swagger
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Rotas
 app.use('/api/pacientes', pacienteRoutes);
