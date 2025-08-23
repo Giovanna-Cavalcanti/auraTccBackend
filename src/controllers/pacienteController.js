@@ -1,3 +1,5 @@
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 import Paciente from '../models/Paciente.js';
 
 // Cria paciente
@@ -101,31 +103,43 @@ const loginPaciente = async (req, res) => {
   try {
     const { email, senha } = req.body;
 
+    // Verificação básica
     if (!email || !senha) {
-      return res.status(400).json({ erro: 'email e senha são obrigatórios' });
+      return res.status(400).json({ erro: "Informe email e senha" });
     }
 
-    // Busca paciente pelo email e inclui a senha (que está com select: false)
+    // Procurar paciente pelo email (Mongoose) e incluir senha
     const paciente = await Paciente.findOne({ email }).select('+senha');
-
     if (!paciente) {
-      return res.status(404).json({ erro: 'Paciente não encontrado' });
+      return res.status(404).json({ erro: "Paciente não encontrado" });
     }
 
-    // Compara senha
+    // Verificar senha
     const senhaValida = await paciente.compararSenha(senha);
     if (!senhaValida) {
-      return res.status(401).json({ erro: 'Senha incorreta' });
+      return res.status(401).json({ erro: "Senha incorreta" });
     }
 
-    // Retorna paciente (sem senha) e mensagem de sucesso
+    // Gerar token JWT
+    const token = jwt.sign(
+      { id: paciente._id, email: paciente.email },
+      process.env.JWT_SECRET || "minha_chave_super_secreta",
+      { expiresIn: "1h" }
+    );
+
+    // Retornar paciente sem senha
     const pacienteData = paciente.toObject();
     delete pacienteData.senha;
 
-    res.status(200).json({ mensagem: 'Login realizado com sucesso', paciente: pacienteData });
+    res.status(200).json({
+      mensagem: "Login realizado com sucesso",
+      token,
+      paciente: pacienteData,
+    });
 
-  } catch (error) {
-    res.status(500).json({ erro: 'Falha no login', detalhes: error.message });
+  } catch (erro) {
+    console.error(erro);
+    res.status(500).json({ erro: "Erro no servidor" });
   }
 };
 
