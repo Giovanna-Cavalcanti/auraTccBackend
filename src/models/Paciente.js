@@ -33,7 +33,7 @@ const PacienteSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Senha é obrigatória'],
     minlength: [6, 'A senha deve ter no mínimo 6 caracteres'],
-    select: false // evita retornar senha em consultas por padrão
+    select: false
   },
   dataCadastro: {
     type: Date,
@@ -45,20 +45,18 @@ const PacienteSchema = new mongoose.Schema({
   timestamps: false
 });
 
-// Pré-processamento para remover formatação do CPF
-PacienteSchema.pre('save', function(next) {
-  if (this.cpf) {
-    this.cpf = this.cpf.replace(/\D/g, '');
-  }
-  next();
-});
-
-// Middleware para hash da senha antes de salvar
+// Middleware unificado: remove formatação do CPF e aplica hash da senha
 PacienteSchema.pre('save', async function(next) {
-  if (!this.isModified('senha')) return next();
   try {
-    const salt = await bcrypt.genSalt(10);
-    this.senha = await bcrypt.hash(this.senha, salt);
+    // Remove formatação do CPF
+    if (this.cpf) this.cpf = this.cpf.replace(/\D/g, '');
+
+    // Hash da senha se modificada
+    if (this.isModified('senha')) {
+      const salt = await bcrypt.genSalt(10);
+      this.senha = await bcrypt.hash(this.senha, salt);
+    }
+
     next();
   } catch (err) {
     next(err);

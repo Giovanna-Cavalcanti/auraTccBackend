@@ -1,12 +1,14 @@
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
 import Paciente from '../models/Paciente.js';
+
+// Campos permitidos para atualização
+const camposPermitidos = ['cpf', 'email', 'nomeCompleto', 'senha'];
 
 // Cria paciente
 const criarPaciente = async (req, res) => {
   try {
     const { cpf, email } = req.body;
-    
+
     const pacienteExistente = await Paciente.findOne({ $or: [{ cpf }, { email }] });
     if (pacienteExistente) {
       const campoDuplicado = pacienteExistente.cpf === cpf ? 'CPF' : 'Email';
@@ -48,24 +50,38 @@ const obterPaciente = async (req, res) => {
 const atualizarPaciente = async (req, res) => {
   try {
     const { id } = req.params;
-    const { cpf, email } = req.body;
-    
+    const updates = {};
+
+    // Filtrar apenas campos permitidos
+    camposPermitidos.forEach(campo => {
+      if (req.body[campo] !== undefined) updates[campo] = req.body[campo];
+    });
+
     const paciente = await Paciente.findById(id);
     if (!paciente) return res.status(404).json({ erro: 'Paciente não encontrado' });
 
-    if (cpf || email) {
+    // Verifica duplicidade de CPF/email
+    if (updates.cpf || updates.email) {
       const conditions = [];
-      if (cpf) conditions.push({ cpf });
-      if (email) conditions.push({ email });
+      if (updates.cpf) conditions.push({ cpf: updates.cpf });
+      if (updates.email) conditions.push({ email: updates.email });
 
       const pacienteExistente = await Paciente.findOne({ _id: { $ne: id }, $or: conditions });
       if (pacienteExistente) {
-        const campoDuplicado = pacienteExistente.cpf === cpf ? 'CPF' : 'Email';
+        const campoDuplicado = pacienteExistente.cpf === updates.cpf ? 'CPF' : 'Email';
         return res.status(400).json({ erro: `${campoDuplicado} já está em uso por outro paciente` });
       }
     }
 
-    const pacienteAtualizado = await Paciente.findByIdAndUpdate(id, req.body, { new: true, runValidators: true }).select('-senha');
+    // Atualiza campos permitidos
+    Object.assign(paciente, updates);
+
+    // Se houver senha, hash será aplicado no pre('save')
+    await paciente.save();
+
+    const pacienteAtualizado = paciente.toObject();
+    delete pacienteAtualizado.senha;
+
     res.status(200).json({ mensagem: 'Paciente atualizado com sucesso', paciente: pacienteAtualizado });
   } catch (error) {
     res.status(400).json({ erro: 'Falha ao atualizar paciente', detalhes: error.message });
@@ -103,31 +119,21 @@ const loginPaciente = async (req, res) => {
   try {
     const { email, senha } = req.body;
 
-    // Verificação básica
-    if (!email || !senha) {
-      return res.status(400).json({ erro: "Informe email e senha" });
-    }
+    if (!email || !senha) return res.status(400).json({ erro: "Informe email e senha" });
 
-    // Procurar paciente pelo email (Mongoose) e incluir senha
     const paciente = await Paciente.findOne({ email }).select('+senha');
-    if (!paciente) {
-      return res.status(404).json({ erro: "Paciente não encontrado" });
-    }
+    if (!paciente) return res.status(404).json({ erro: "Paciente não encontrado" });
 
-    // Verificar senha
     const senhaValida = await paciente.compararSenha(senha);
-    if (!senhaValida) {
-      return res.status(401).json({ erro: "Senha incorreta" });
-    }
+    if (!senhaValida) return res.status(401).json({ erro: "Senha incorreta" });
 
-    // Gerar token JWT
+    // JWT usando apenas .env
     const token = jwt.sign(
       { id: paciente._id, email: paciente.email },
-      process.env.JWT_SECRET || "minha_chave_super_secreta",
+      process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
-    // Retornar paciente sem senha
     const pacienteData = paciente.toObject();
     delete pacienteData.senha;
 
