@@ -1,5 +1,7 @@
 import jwt from 'jsonwebtoken';
 import Paciente from '../models/Paciente.js';
+import Profissional from '../models/Profissional.js';
+
 
 // Campos permitidos para atualização
 const camposPermitidos = ['cpf', 'email', 'nomeCompleto', 'senha'];
@@ -149,6 +151,53 @@ const loginPaciente = async (req, res) => {
   }
 };
 
+// Vincular paciente a um profissional
+const vincularProfissional = async (req, res) => {
+  try {
+    const { pacienteId, profissionalId } = req.params;
+
+    // Verifica se paciente existe
+    const paciente = await Paciente.findById(pacienteId);
+    if (!paciente) return res.status(404).json({ erro: 'Paciente não encontrado' });
+
+    // Verifica se profissional existe
+    const profissional = await Profissional.findById(profissionalId);
+    if (!profissional) return res.status(404).json({ erro: 'Profissional não encontrado' });
+
+    // Atualiza o vínculo
+    paciente.profissional = profissionalId;
+    await paciente.save();
+
+    res.status(200).json({ mensagem: 'Profissional vinculado com sucesso', paciente });
+  } catch (error) {
+    res.status(500).json({ erro: 'Falha ao vincular profissional', detalhes: error.message });
+  }
+};
+
+// Mostrar profissional vinculado a um paciente
+export const mostrarProfissionalDoPaciente = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Busca o paciente
+    const paciente = await Paciente.findById(id).populate('profissional'); 
+    // `populate` traz os dados do profissional
+
+    if (!paciente) {
+      return res.status(404).json({ erro: 'Paciente não encontrado' });
+    }
+
+    if (!paciente.profissional) {
+      return res.status(200).json({ mensagem: 'Paciente ainda não possui profissional vinculado' });
+    }
+
+    res.status(200).json(paciente.profissional);
+  } catch (error) {
+    res.status(500).json({ erro: 'Falha ao buscar profissional do paciente', detalhes: error.message });
+  }
+};
+
+
 export default {
   criarPaciente,
   listarPacientes,
@@ -156,5 +205,7 @@ export default {
   atualizarPaciente,
   removerPaciente,
   buscarPacientePorCpf,
-  loginPaciente
+  loginPaciente,
+  vincularProfissional,
+  mostrarProfissionalDoPaciente
 };

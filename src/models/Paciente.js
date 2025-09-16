@@ -39,7 +39,13 @@ const PacienteSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
     immutable: true
-  }
+  },
+  profissional: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Profissional',
+    default: null
+}
+
 }, {
   versionKey: false,
   timestamps: false

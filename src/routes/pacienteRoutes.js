@@ -16,4 +16,11 @@ router.delete('/:id', pacienteController.removerPaciente);
 // Rota de login
 router.post('/login', pacienteController.loginPaciente);
 
+// Vincular paciente a profissional
+router.put('/:pacienteId/profissional/:profissionalId', pacienteController.vincularProfissional);
+
+// Mostrar profissional vinculado ao paciente
+router.get('/:id/profissional', pacienteController.mostrarProfissionalDoPaciente);
+
+
 export default router;

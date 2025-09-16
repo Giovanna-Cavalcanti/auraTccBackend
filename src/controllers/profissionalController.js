@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import Profissional from '../models/Profissional.js';
+import Paciente from '../models/Paciente.js';
 
 // Campos permitidos para atualização
 const camposPermitidos = ['cpf', 'email', 'nomeCompleto', 'senha', 'tipoAtuacao', 'valorConsulta', 'convenios', 'modalidades'];
@@ -127,11 +128,35 @@ const loginProfissional = async (req, res) => {
     }
 };
 
+// Listar pacientes de um profissional
+// Listar pacientes de um profissional
+export const listarPacientesDoProfissional = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Verifica se o profissional existe
+    const profissional = await Profissional.findById(id);
+    if (!profissional) {
+      return res.status(404).json({ erro: 'Profissional não encontrado' });
+    }
+
+    // Busca pacientes vinculados a esse profissional
+    const pacientes = await Paciente.find({ profissional: id });
+
+    res.status(200).json(pacientes);
+  } catch (error) {
+    res.status(500).json({ erro: 'Falha ao listar pacientes', detalhes: error.message });
+  }
+};
+
+
+
 export default {
     criarProfissional,
     listarProfissionais,
     obterProfissional,
     atualizarProfissional,
     removerProfissional,
-    loginProfissional
+    loginProfissional,
+    listarPacientesDoProfissional
 };
