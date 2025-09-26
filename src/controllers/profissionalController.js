@@ -8,9 +8,9 @@ const camposPermitidos = ['cpf', 'email', 'nomeCompleto', 'senha', 'tipoAtuacao'
 // Criar profissional
 const criarProfissional = async (req, res) => {
     try {
-    const { cpf, email, crm_crp } = req.body;
+    const { cpf, email, crp } = req.body;
 
-    const profissionalExistente = await Profissional.findOne({ $or: [{ cpf }, { email }, { crm_crp }] });
+    const profissionalExistente = await Profissional.findOne({ $or: [{ cpf }, { email }, { crp }] });
     if (profissionalExistente) {
         return res.status(400).json({ erro: 'CPF, Email ou CRM/CRP já cadastrado no sistema' });
     }
@@ -60,11 +60,11 @@ const atualizarProfissional = async (req, res) => {
     if (!profissional) return res.status(404).json({ erro: 'Profissional não encontrado' });
 
     // Verifica duplicidade de CPF, email ou CRM/CRP
-    if (updates.cpf || updates.email || updates.crm_crp) {
+    if (updates.cpf || updates.email || updates.crp) {
         const conditions = [];
         if (updates.cpf) conditions.push({ cpf: updates.cpf });
         if (updates.email) conditions.push({ email: updates.email });
-        if (updates.crm_crp) conditions.push({ crm_crp: updates.crm_crp });
+        if (updates.crp) conditions.push({ crp: updates.crp });
 
         const profissionalExistente = await Profissional.findOne({ _id: { $ne: id }, $or: conditions });
         if (profissionalExistente) {
