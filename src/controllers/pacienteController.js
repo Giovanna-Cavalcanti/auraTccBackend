@@ -151,31 +151,9 @@ const loginPaciente = async (req, res) => {
   }
 };
 
-// Vincular paciente a um profissional
-const vincularProfissional = async (req, res) => {
-  try {
-    const { pacienteId, profissionalId } = req.params;
-
-    // Verifica se paciente existe
-    const paciente = await Paciente.findById(pacienteId);
-    if (!paciente) return res.status(404).json({ erro: 'Paciente não encontrado' });
-
-    // Verifica se profissional existe
-    const profissional = await Profissional.findById(profissionalId);
-    if (!profissional) return res.status(404).json({ erro: 'Profissional não encontrado' });
-
-    // Atualiza o vínculo
-    paciente.profissional = profissionalId;
-    await paciente.save();
-
-    res.status(200).json({ mensagem: 'Profissional vinculado com sucesso', paciente });
-  } catch (error) {
-    res.status(500).json({ erro: 'Falha ao vincular profissional', detalhes: error.message });
-  }
-};
 
 // Mostrar profissional vinculado a um paciente
-export const mostrarProfissionalDoPaciente = async (req, res) => {
+const mostrarProfissionalDoPaciente = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -197,6 +175,112 @@ export const mostrarProfissionalDoPaciente = async (req, res) => {
   }
 };
 
+const enviarSolicitacao = async (req, res) => {
+  try {
+    const { pacienteId, profissionalId } = req.params;
+
+    const paciente = await Paciente.findById(pacienteId);
+    if (!paciente) return res.status(404).json({ erro: 'Paciente não encontrado' });
+
+    const profissional = await Profissional.findById(profissionalId);
+    if (!profissional) return res.status(404).json({ erro: 'Profissional não encontrado' });
+
+    // Verifica se o paciente já tem vínculo ativo
+    if (paciente.profissional) {
+      return res.status(400).json({ erro: 'Paciente já possui um profissional vinculado' });
+    }
+
+    // Verifica se já há uma solicitação pendente
+    if (paciente.solicitacao?.status === 'pendente') {
+      return res.status(400).json({ erro: 'Já existe uma solicitação pendente' });
+    }
+
+    // Cria nova solicitação
+    paciente.solicitacao = {
+      profissional: profissionalId,
+      status: 'pendente'
+    };
+
+    await paciente.save();
+    res.status(200).json({ mensagem: 'Solicitação enviada com sucesso', paciente });
+  } catch (error) {
+    res.status(500).json({ erro: 'Falha ao enviar solicitação', detalhes: error.message });
+  }
+};
+
+const verSolicitacaoAtual = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const paciente = await Paciente.findById(id)
+      .populate('solicitacao.profissional', 'nomeCompleto email');
+
+    if (!paciente) return res.status(404).json({ erro: 'Paciente não encontrado' });
+
+    if (!paciente.solicitacao || !paciente.solicitacao.profissional) {
+      return res.status(200).json({ mensagem: 'Nenhuma solicitação enviada' });
+    }
+
+    res.status(200).json({
+      profissional: paciente.solicitacao.profissional,
+      status: paciente.solicitacao.status
+    });
+  } catch (error) {
+    res.status(500).json({ erro: 'Falha ao buscar solicitação atual', detalhes: error.message });
+  }
+};
+
+const cancelarSolicitacao = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const paciente = await Paciente.findById(id);
+    if (!paciente) return res.status(404).json({ erro: 'Paciente não encontrado' });
+
+    if (!paciente.solicitacao || paciente.solicitacao.status !== 'pendente') {
+      return res.status(400).json({ erro: 'Nenhuma solicitação pendente para cancelar' });
+    }
+
+    // Cancela a solicitação
+    paciente.solicitacao = { profissional: null, status: null };
+    await paciente.save();
+
+    res.status(200).json({ mensagem: 'Solicitação cancelada com sucesso', paciente });
+  } catch (error) {
+    res.status(500).json({ erro: 'Falha ao cancelar solicitação', detalhes: error.message });
+  }
+};
+
+
+const desvincularProfissional = async (req, res) => {
+  try {
+    const { id } = req.params; // ID do paciente
+    const paciente = await Paciente.findById(id);
+
+    if (!paciente) {
+      return res.status(404).json({ erro: "Paciente não encontrado." });
+    }
+
+    if (!paciente.profissional) {
+      return res.status(400).json({ erro: "Este paciente não possui um profissional vinculado." });
+    }
+
+    // Remove vínculo direto e limpa solicitação (se existir)
+    const profissionalId = paciente.profissional;
+    paciente.profissional = null;
+    paciente.solicitacao = { profissional: null, status: null };
+
+    await paciente.save();
+
+    res.status(200).json({
+      mensagem: "Vínculo entre paciente e profissional removido com sucesso.",
+      pacienteId: id,
+      profissionalRemovido: profissionalId
+    });
+  } catch (error) {
+    res.status(500).json({ erro: "Falha ao remover vínculo", detalhes: error.message });
+  }
+};
 
 export default {
   criarPaciente,
@@ -206,6 +290,9 @@ export default {
   removerPaciente,
   buscarPacientePorCpf,
   loginPaciente,
-  vincularProfissional,
-  mostrarProfissionalDoPaciente
+  mostrarProfissionalDoPaciente,
+  enviarSolicitacao,
+  verSolicitacaoAtual,
+  cancelarSolicitacao,
+  desvincularProfissional
 };

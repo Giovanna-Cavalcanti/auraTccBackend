@@ -44,7 +44,16 @@ const PacienteSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Profissional',
     default: null
-}
+},
+solicitacao: {
+  profissional: { type: mongoose.Schema.Types.ObjectId, ref: 'Profissional', default: null },
+  status: {
+    type: String,
+    enum: ['pendente', 'aceita', 'recusada', null],
+    default: null
+  }
+},
+
 
 }, {
   versionKey: false,
@@ -67,6 +76,8 @@ PacienteSchema.pre('save', async function(next) {
   } catch (err) {
     next(err);
   }
+
+  
 });
 
 // Método para comparar senha em login

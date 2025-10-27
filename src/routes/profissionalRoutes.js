@@ -21,4 +21,13 @@ router.get('/:id/pacientes', profissionalController.listarPacientesDoProfissiona
 //completar o cadastro com local e descrição
 router.put('/:id/completar', profissionalController.completarCadastro);
 
+// Profissional responde (aceitar/recusar)
+router.put('/:profissionalId/solicitacoes/:pacienteId', profissionalController.responderSolicitacao);
+
+// Listar solicitações pendentes de vínculo
+router.get('/:id/solicitacoes', profissionalController.listarSolicitacoesPendentes);
+
+// Profissional desfaz vínculo com um paciente específico
+router.delete('/:profissionalId/desvincular/:pacienteId', profissionalController.desvincularPaciente);
+
 export default router;

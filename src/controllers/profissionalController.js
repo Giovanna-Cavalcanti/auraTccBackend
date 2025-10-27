@@ -129,8 +129,7 @@ const loginProfissional = async (req, res) => {
 };
 
 // Listar pacientes de um profissional
-// Listar pacientes de um profissional
-export const listarPacientesDoProfissional = async (req, res) => {
+const listarPacientesDoProfissional = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -178,6 +177,98 @@ const completarCadastro = async (req, res) => {
   }
 };
 
+const responderSolicitacao = async (req, res) => {
+  try {
+    const { profissionalId, pacienteId } = req.params;
+    const { acao } = req.body; // "aceitar" ou "recusar"
+
+    const profissional = await Profissional.findById(profissionalId);
+    if (!profissional) return res.status(404).json({ erro: 'Profissional não encontrado' });
+
+    const paciente = await Paciente.findById(pacienteId);
+    if (!paciente) return res.status(404).json({ erro: 'Paciente não encontrado' });
+
+    if (!paciente.solicitacao || paciente.solicitacao.status !== 'pendente') {
+      return res.status(400).json({ erro: 'Nenhuma solicitação pendente para este paciente' });
+    }
+
+    if (paciente.solicitacao.profissional.toString() !== profissionalId) {
+      return res.status(403).json({ erro: 'Este profissional não é o destinatário da solicitação' });
+    }
+
+    if (acao === 'aceitar') {
+      paciente.profissional = profissionalId;
+      paciente.solicitacao.status = 'aceita';
+      await paciente.save();
+
+      return res.status(200).json({ mensagem: 'Solicitação aceita, vínculo criado', paciente });
+    }
+
+    if (acao === 'recusar') {
+      paciente.solicitacao.status = 'recusada';
+      await paciente.save();
+
+      return res.status(200).json({ mensagem: 'Solicitação recusada', paciente });
+    }
+
+    return res.status(400).json({ erro: 'Ação inválida. Use "aceitar" ou "recusar".' });
+  } catch (error) {
+    res.status(500).json({ erro: 'Falha ao responder solicitação', detalhes: error.message });
+  }
+};
+
+const listarSolicitacoesPendentes = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Verifica se profissional existe
+    const profissional = await Profissional.findById(id);
+    if (!profissional) return res.status(404).json({ erro: 'Profissional não encontrado' });
+
+    // Busca todos os pacientes com solicitação pendente para este profissional
+    const solicitacoes = await Paciente.find({
+      'solicitacao.profissional': id,
+      'solicitacao.status': 'pendente'
+    }).select('nomeCompleto email cpf solicitacao');
+
+    if (solicitacoes.length === 0) {
+      return res.status(200).json({ mensagem: 'Nenhuma solicitação pendente encontrada' });
+    }
+
+    res.status(200).json(solicitacoes);
+  } catch (error) {
+    res.status(500).json({ erro: 'Falha ao listar solicitações pendentes', detalhes: error.message });
+  }
+};
+
+const desvincularPaciente = async (req, res) => {
+  try {
+    const { profissionalId, pacienteId } = req.params;
+
+    const profissional = await Profissional.findById(profissionalId);
+    const paciente = await Paciente.findById(pacienteId);
+
+    if (!profissional || !paciente) {
+      return res.status(404).json({ erro: "Profissional ou paciente não encontrado." });
+    }
+
+    // Verifica se o paciente está vinculado a este profissional
+    if (paciente.profissional?.toString() !== profissionalId) {
+      return res.status(400).json({ erro: "Este paciente não está vinculado a este profissional." });
+    }
+
+    // Remove vínculo do paciente
+    paciente.profissional = null;
+    paciente.solicitacao = { profissional: null, status: null };
+    await paciente.save();
+
+    res.status(200).json({ mensagem: "Vínculo com paciente removido com sucesso." });
+  } catch (erro) {
+    res.status(500).json({ erro: "Erro ao desfazer vínculo.", detalhe: erro.message });
+  }
+};
+
+
 export default {
     criarProfissional,
     listarProfissionais,
@@ -186,5 +277,8 @@ export default {
     removerProfissional,
     loginProfissional,
     listarPacientesDoProfissional,
-    completarCadastro
+    completarCadastro,
+    responderSolicitacao,
+    listarSolicitacoesPendentes,
+    desvincularPaciente
 };
