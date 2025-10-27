@@ -18,5 +18,7 @@ router.post('/login', profissionalController.loginProfissional);
 // Listar pacientes vinculados a um profissional
 router.get('/:id/pacientes', profissionalController.listarPacientesDoProfissional);
 
+//completar o cadastro com local e descrição
+router.put('/:id/completar', profissionalController.completarCadastro);
 
 export default router;

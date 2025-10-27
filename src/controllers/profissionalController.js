@@ -3,7 +3,7 @@ import Profissional from '../models/Profissional.js';
 import Paciente from '../models/Paciente.js';
 
 // Campos permitidos para atualização
-const camposPermitidos = ['cpf', 'email', 'nomeCompleto', 'senha', 'tipoAtuacao', 'valorConsulta', 'convenios', 'modalidades'];
+const camposPermitidos = ['cpf', 'email', 'nomeCompleto', 'senha', 'tipoAtuacao', 'valorConsulta', 'convenios', 'modalidades','descricao', 'localizacao' ];
 
 // Criar profissional
 const criarProfissional = async (req, res) => {
@@ -149,7 +149,34 @@ export const listarPacientesDoProfissional = async (req, res) => {
   }
 };
 
+const completarCadastro = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { descricao, localizacao } = req.body;
 
+    const profissional = await Profissional.findById(id);
+    if (!profissional) {
+      return res.status(404).json({ erro: 'Profissional não encontrado' });
+    }
+
+    profissional.descricao = descricao || profissional.descricao;
+    profissional.localizacao = localizacao || profissional.localizacao;
+    await profissional.save();
+
+    const atualizado = profissional.toObject();
+    delete atualizado.senha;
+
+    res.status(200).json({
+      mensagem: 'Cadastro complementado com sucesso',
+      profissional: atualizado
+    });
+  } catch (error) {
+    res.status(400).json({
+      erro: 'Falha ao completar cadastro',
+      detalhes: error.message
+    });
+  }
+};
 
 export default {
     criarProfissional,
@@ -158,5 +185,6 @@ export default {
     atualizarProfissional,
     removerProfissional,
     loginProfissional,
-    listarPacientesDoProfissional
+    listarPacientesDoProfissional,
+    completarCadastro
 };

@@ -61,6 +61,18 @@ const ProfissionalSchema = new mongoose.Schema({
     enum: ['hibrido', 'online', 'presencial'],
     default: []
     },
+    descricao: {
+    type: String,
+    trim: true,
+    maxLength: [1000, 'A descrição não pode ultrapassar 1000 caracteres'],
+    default: ''
+    },
+    localizacao: {
+    type: String,
+    trim: true,
+    maxLength: [200, 'A localização não pode ultrapassar 200 caracteres'],
+    default: ''
+    },
     dataCadastro: {
     type: Date,
     default: Date.now,
