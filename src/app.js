@@ -3,6 +3,7 @@ import cors from 'cors';
 import connectDB from './config/db.js';
 import pacienteRoutes from './routes/pacienteRoutes.js';
 import profissionalRoutes from './routes/profissionalRoutes.js';
+import triagemRoutes from './routes/triagemRoutes.js'
 
 import swaggerUi from "swagger-ui-express";
 import fs from "fs";
@@ -26,6 +27,7 @@ app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 // Rotas
 app.use('/api/pacientes', pacienteRoutes);
 app.use('/api/profissionais', profissionalRoutes);
+app.use("/api/triagem", triagemRoutes);
 
 // Health Check
 app.get('/health', (req, res) => {
