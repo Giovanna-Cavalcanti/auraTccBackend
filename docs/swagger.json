@@ -1,13 +1,14 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "API v1 - Crud de Pacientes",
-    "version": "1.0.0",
-    "description": "API para gerenciamento de pacientes com autenticação JWT"
+    "title": "API v1 - Sistema de Gestão de Saúde Mental",
+    "version": "2.0.0",
+    "description": "API completa para gerenciamento de pacientes, profissionais, triagem, diário emocional, humor e atividades terapêuticas com autenticação JWT"
   },
   "servers": [
     {
-      "url": "http://localhost:3000/api"
+      "url": "http://localhost:3000/api",
+      "description": "Servidor de desenvolvimento"
     }
   ],
   "components": {
@@ -26,7 +27,15 @@
           "cpf": { "type": "string", "example": "12345678901" },
           "nomeCompleto": { "type": "string", "example": "João da Silva" },
           "email": { "type": "string", "example": "joao@email.com" },
-          "dataCadastro": { "type": "string", "format": "date-time", "example": "2024-08-23T12:34:56.789Z" }
+          "profissional": { "type": "string", "example": "64d88c9a1f1b2c001f8e9a13" },
+          "solicitacao": {
+            "type": "object",
+            "properties": {
+              "profissional": { "type": "string" },
+              "status": { "type": "string", "enum": ["pendente", "aceita", "recusada"] }
+            }
+          },
+          "dataCadastro": { "type": "string", "format": "date-time" }
         }
       },
       "PacienteInput": {
@@ -39,11 +48,128 @@
           "senha": { "type": "string", "example": "minhasenha123" }
         }
       },
+      "Profissional": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string", "example": "64d88c9a1f1b2c001f8e9a13" },
+          "cpf": { "type": "string", "example": "98765432100" },
+          "nomeCompleto": { "type": "string", "example": "Dra. Maria Santos" },
+          "crp": { "type": "string", "example": "06/123456" },
+          "email": { "type": "string", "example": "maria@email.com" },
+          "tipoAtuacao": { "type": "string", "enum": ["clinica", "atendimento próprio"] },
+          "valorConsulta": { "type": "string", "enum": ["100-150", "200-250", "300-350", "400+"] },
+          "convenios": { "type": "array", "items": { "type": "string", "enum": ["unimed", "bradesco", "amil", "sulamerica", "hapvida"] } },
+          "modalidadesAtendimento": { "type": "array", "items": { "type": "string", "enum": ["hibrido", "online", "presencial"] } },
+          "descricao": { "type": "string", "example": "Psicóloga especializada em TCC" },
+          "localizacao": { "type": "string", "example": "São Paulo, SP" },
+          "dataCadastro": { "type": "string", "format": "date-time" }
+        }
+      },
+      "ProfissionalInput": {
+        "type": "object",
+        "required": ["cpf", "nomeCompleto", "crp", "email", "senha", "tipoAtuacao", "valorConsulta"],
+        "properties": {
+          "cpf": { "type": "string", "example": "98765432100" },
+          "nomeCompleto": { "type": "string", "example": "Dra. Maria Santos" },
+          "crp": { "type": "string", "example": "06/123456" },
+          "email": { "type": "string", "example": "maria@email.com" },
+          "senha": { "type": "string", "example": "senha123" },
+          "tipoAtuacao": { "type": "string", "enum": ["clinica", "atendimento próprio"] },
+          "valorConsulta": { "type": "string", "enum": ["100-150", "200-250", "300-350", "400+"] },
+          "convenios": { "type": "array", "items": { "type": "string" } },
+          "modalidadesAtendimento": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "Triagem": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "pacienteId": { "type": "string" },
+          "motivo": { "type": "string", "enum": ["Lidar melhor com emoções", "Ansiedade", "Problemas familiares", "Outro"] },
+          "tempoSintomas": { "type": "string", "enum": ["Menos de 1 semana", "1 a 4 semanas", "1 a 3 meses", "Mais de 3 meses"] },
+          "frequencia": { "type": "string", "enum": ["Raramente", "Algumas vezes por semana", "Todos os dias", "Não sei dizer"] },
+          "genero": { "type": "string", "enum": ["Feminino", "Masculino", "Sem preferência"] },
+          "dataResposta": { "type": "string", "format": "date-time" }
+        }
+      },
+      "TriagemInput": {
+        "type": "object",
+        "required": ["pacienteId", "motivo", "tempoSintomas", "frequencia", "genero"],
+        "properties": {
+          "pacienteId": { "type": "string", "example": "64d88c9a1f1b2c001f8e9a12" },
+          "motivo": { "type": "string", "enum": ["Lidar melhor com emoções", "Ansiedade", "Problemas familiares", "Outro"] },
+          "tempoSintomas": { "type": "string", "enum": ["Menos de 1 semana", "1 a 4 semanas", "1 a 3 meses", "Mais de 3 meses"] },
+          "frequencia": { "type": "string", "enum": ["Raramente", "Algumas vezes por semana", "Todos os dias", "Não sei dizer"] },
+          "genero": { "type": "string", "enum": ["Feminino", "Masculino", "Sem preferência"] }
+        }
+      },
+      "Diario": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "pacienteId": { "type": "string" },
+          "conteudo": { "type": "string", "example": "Hoje me senti melhor..." },
+          "dataCriacao": { "type": "string", "format": "date-time" },
+          "dataAtualizacao": { "type": "string", "format": "date-time" }
+        }
+      },
+      "DiarioInput": {
+        "type": "object",
+        "required": ["pacienteId", "conteudo"],
+        "properties": {
+          "pacienteId": { "type": "string", "example": "64d88c9a1f1b2c001f8e9a12" },
+          "conteudo": { "type": "string", "example": "Hoje me senti melhor..." }
+        }
+      },
+      "Humor": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "pacienteId": { "type": "string" },
+          "humor": { "type": "string", "enum": ["Muito feliz", "Feliz", "Neutro", "Triste", "Muito triste", ""] },
+          "dataRegistro": { "type": "string", "format": "date-time" },
+          "dataAtualizacao": { "type": "string", "format": "date-time" }
+        }
+      },
+      "HumorInput": {
+        "type": "object",
+        "required": ["pacienteId"],
+        "properties": {
+          "pacienteId": { "type": "string", "example": "64d88c9a1f1b2c001f8e9a12" },
+          "humor": { "type": "string", "enum": ["Muito feliz", "Feliz", "Neutro", "Triste", "Muito triste", ""] }
+        }
+      },
+      "Atividade": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "psicologoId": { "type": "string" },
+          "pacienteId": { "type": "string" },
+          "titulo": { "type": "string", "example": "Exercício de respiração" },
+          "descricao": { "type": "string", "example": "Praticar 5 minutos de respiração profunda" },
+          "prazo": { "type": "string", "format": "date" },
+          "progresso": { "type": "number", "minimum": 0, "maximum": 100, "example": 50 },
+          "observacaoPaciente": { "type": "string" },
+          "status": { "type": "string", "enum": ["pendente", "em andamento", "concluída"] },
+          "dataCriacao": { "type": "string", "format": "date-time" }
+        }
+      },
+      "AtividadeInput": {
+        "type": "object",
+        "required": ["psicologoId", "pacienteId", "titulo", "descricao"],
+        "properties": {
+          "psicologoId": { "type": "string", "example": "64d88c9a1f1b2c001f8e9a13" },
+          "pacienteId": { "type": "string", "example": "64d88c9a1f1b2c001f8e9a12" },
+          "titulo": { "type": "string", "example": "Exercício de respiração" },
+          "descricao": { "type": "string", "example": "Praticar 5 minutos de respiração profunda" },
+          "prazo": { "type": "string", "format": "date" }
+        }
+      },
       "LoginInput": {
         "type": "object",
         "required": ["email", "senha"],
         "properties": {
-          "email": { "type": "string", "example": "joao@email.com" },
+          "email": { "type": "string", "example": "usuario@email.com" },
           "senha": { "type": "string", "example": "minhasenha123" }
         }
       },
@@ -52,7 +178,15 @@
         "properties": {
           "mensagem": { "type": "string", "example": "Login realizado com sucesso" },
           "token": { "type": "string", "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6..." },
-          "paciente": { "$ref": "#/components/schemas/Paciente" }
+          "paciente": { "$ref": "#/components/schemas/Paciente" },
+          "profissional": { "$ref": "#/components/schemas/Profissional" }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "erro": { "type": "string" },
+          "detalhes": { "type": "string" }
         }
       }
     }
@@ -60,6 +194,7 @@
   "paths": {
     "/pacientes": {
       "post": {
+        "tags": ["Pacientes"],
         "summary": "Cadastrar novo paciente",
         "requestBody": {
           "required": true,
@@ -74,23 +209,22 @@
             "description": "Paciente cadastrado com sucesso",
             "content": {
               "application/json": {
-                "example": {
-                  "mensagem": "Paciente cadastrado com sucesso",
-                  "paciente": {
-                    "_id": "64d88c9a1f1b2c001f8e9a12",
-                    "cpf": "12345678901",
-                    "nomeCompleto": "João da Silva",
-                    "email": "joao@email.com"
-                  },
-                  "token": "eyJhbGciOiJIUzI1NiIs..."
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "mensagem": { "type": "string" },
+                    "paciente": { "$ref": "#/components/schemas/Paciente" },
+                    "token": { "type": "string" }
+                  }
                 }
               }
             }
           },
-          "400": { "description": "Erro de validação" }
+          "400": { "description": "Erro de validação", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
         }
       },
       "get": {
+        "tags": ["Pacientes"],
         "summary": "Listar todos os pacientes",
         "security": [{ "bearerAuth": [] }],
         "responses": {
@@ -111,6 +245,7 @@
     },
     "/pacientes/buscar/cpf": {
       "get": {
+        "tags": ["Pacientes"],
         "summary": "Buscar paciente por CPF",
         "parameters": [
           {
@@ -129,6 +264,7 @@
     },
     "/pacientes/{id}": {
       "get": {
+        "tags": ["Pacientes"],
         "summary": "Buscar paciente por ID",
         "parameters": [
           { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
@@ -139,6 +275,7 @@
         }
       },
       "put": {
+        "tags": ["Pacientes"],
         "summary": "Atualizar paciente por ID",
         "parameters": [
           { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
@@ -156,6 +293,7 @@
         }
       },
       "delete": {
+        "tags": ["Pacientes"],
         "summary": "Remover paciente por ID",
         "parameters": [
           { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
@@ -168,6 +306,7 @@
     },
     "/pacientes/login": {
       "post": {
+        "tags": ["Pacientes"],
         "summary": "Login de paciente",
         "requestBody": {
           "required": true,
@@ -186,6 +325,801 @@
           "404": { "description": "Paciente não encontrado" }
         }
       }
+    },
+    "/profissionais": {
+      "post": {
+        "tags": ["Profissionais"],
+        "summary": "Cadastrar novo profissional",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ProfissionalInput" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Profissional cadastrado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "mensagem": { "type": "string" },
+                    "profissional": { "$ref": "#/components/schemas/Profissional" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Erro de validação - CPF, Email ou CRP já cadastrado", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+        }
+      },
+      "get": {
+        "tags": ["Profissionais"],
+        "summary": "Listar todos os profissionais",
+        "responses": {
+          "200": {
+            "description": "Lista de profissionais",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Profissional" }
+                }
+              }
+            }
+          },
+          "500": { "description": "Erro ao buscar profissionais" }
+        }
+      }
+    },
+    "/profissionais/{id}": {
+      "get": {
+        "tags": ["Profissionais"],
+        "summary": "Obter profissional por ID",
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Profissional encontrado", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Profissional" } } } },
+          "404": { "description": "Profissional não encontrado" }
+        }
+      },
+      "put": {
+        "tags": ["Profissionais"],
+        "summary": "Atualizar profissional",
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "cpf": { "type": "string" },
+                  "email": { "type": "string" },
+                  "nomeCompleto": { "type": "string" },
+                  "senha": { "type": "string" },
+                  "tipoAtuacao": { "type": "string" },
+                  "valorConsulta": { "type": "string" },
+                  "convenios": { "type": "array", "items": { "type": "string" } },
+                  "modalidades": { "type": "array", "items": { "type": "string" } },
+                  "descricao": { "type": "string" },
+                  "localizacao": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Profissional atualizado com sucesso" },
+          "400": { "description": "Erro de validação" },
+          "404": { "description": "Profissional não encontrado" }
+        }
+      },
+      "delete": {
+        "tags": ["Profissionais"],
+        "summary": "Remover profissional",
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Profissional removido com sucesso" },
+          "404": { "description": "Profissional não encontrado" }
+        }
+      }
+    },
+    "/profissionais/login": {
+      "post": {
+        "tags": ["Profissionais"],
+        "summary": "Login de profissional",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/LoginInput" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login realizado com sucesso",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/LoginResponse" } }
+            }
+          },
+          "401": { "description": "Senha incorreta" },
+          "404": { "description": "Profissional não encontrado" }
+        }
+      }
+    },
+    "/profissionais/{id}/pacientes": {
+      "get": {
+        "tags": ["Profissionais"],
+        "summary": "Listar pacientes vinculados ao profissional",
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de pacientes vinculados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Paciente" }
+                }
+              }
+            }
+          },
+          "404": { "description": "Profissional não encontrado" }
+        }
+      }
+    },
+    "/profissionais/{id}/completar": {
+      "put": {
+        "tags": ["Profissionais"],
+        "summary": "Completar cadastro com descrição e localização",
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "descricao": { "type": "string", "example": "Psicóloga especializada em TCC" },
+                  "localizacao": { "type": "string", "example": "São Paulo, SP" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Cadastro complementado com sucesso" },
+          "404": { "description": "Profissional não encontrado" }
+        }
+      }
+    },
+    "/profissionais/{profissionalId}/solicitacoes/{pacienteId}": {
+      "put": {
+        "tags": ["Profissionais"],
+        "summary": "Responder solicitação de vínculo (aceitar/recusar)",
+        "parameters": [
+          { "in": "path", "name": "profissionalId", "required": true, "schema": { "type": "string" } },
+          { "in": "path", "name": "pacienteId", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["acao"],
+                "properties": {
+                  "acao": { "type": "string", "enum": ["aceitar", "recusar"], "example": "aceitar" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Solicitação respondida com sucesso" },
+          "400": { "description": "Nenhuma solicitação pendente ou ação inválida" },
+          "403": { "description": "Profissional não é destinatário da solicitação" },
+          "404": { "description": "Profissional ou paciente não encontrado" }
+        }
+      }
+    },
+    "/profissionais/{id}/solicitacoes": {
+      "get": {
+        "tags": ["Profissionais"],
+        "summary": "Listar solicitações pendentes de vínculo",
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de solicitações pendentes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "_id": { "type": "string" },
+                      "nomeCompleto": { "type": "string" },
+                      "email": { "type": "string" },
+                      "cpf": { "type": "string" },
+                      "solicitacao": { "type": "object" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": { "description": "Profissional não encontrado" }
+        }
+      }
+    },
+    "/profissionais/{profissionalId}/desvincular/{pacienteId}": {
+      "delete": {
+        "tags": ["Profissionais"],
+        "summary": "Desvincular paciente do profissional",
+        "parameters": [
+          { "in": "path", "name": "profissionalId", "required": true, "schema": { "type": "string" } },
+          { "in": "path", "name": "pacienteId", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Vínculo removido com sucesso" },
+          "400": { "description": "Paciente não vinculado a este profissional" },
+          "404": { "description": "Profissional ou paciente não encontrado" }
+        }
+      }
+    },
+    "/triagem": {
+      "post": {
+        "tags": ["Triagem"],
+        "summary": "Criar nova triagem",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TriagemInput" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Triagem salva com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "mensagem": { "type": "string" },
+                    "triagem": { "$ref": "#/components/schemas/Triagem" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Campos obrigatórios ausentes" }
+        }
+      }
+    },
+    "/triagem/{pacienteId}": {
+      "get": {
+        "tags": ["Triagem"],
+        "summary": "Buscar triagens de um paciente",
+        "parameters": [
+          { "in": "path", "name": "pacienteId", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de triagens do paciente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Triagem" }
+                }
+              }
+            }
+          },
+          "404": { "description": "Nenhuma triagem encontrada" }
+        }
+      },
+      "put": {
+        "tags": ["Triagem"],
+        "summary": "Atualizar triagem existente",
+        "parameters": [
+          { "in": "path", "name": "pacienteId", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "motivo": { "type": "string" },
+                  "tempoSintomas": { "type": "string" },
+                  "frequencia": { "type": "string" },
+                  "genero": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Triagem atualizada com sucesso" },
+          "404": { "description": "Triagem não encontrada" }
+        }
+      }
+    },
+    "/diario": {
+      "post": {
+        "tags": ["Diário Emocional"],
+        "summary": "Criar nova anotação no diário",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/DiarioInput" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Anotação criada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "mensagem": { "type": "string" },
+                    "anotacao": { "$ref": "#/components/schemas/Diario" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Campos obrigatórios ausentes" }
+        }
+      }
+    },
+    "/diario/paciente/{pacienteId}": {
+      "get": {
+        "tags": ["Diário Emocional"],
+        "summary": "Obter todas as anotações de um paciente",
+        "parameters": [
+          { "in": "path", "name": "pacienteId", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de anotações do paciente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Diario" }
+                }
+              }
+            }
+          },
+          "500": { "description": "Erro ao buscar anotações" }
+        }
+      }
+    },
+    "/diario/{id}": {
+      "get": {
+        "tags": ["Diário Emocional"],
+        "summary": "Obter anotação específica por ID",
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Anotação encontrada",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Diario" }
+              }
+            }
+          },
+          "404": { "description": "Anotação não encontrada" }
+        }
+      },
+      "put": {
+        "tags": ["Diário Emocional"],
+        "summary": "Atualizar anotação existente",
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["conteudo"],
+                "properties": {
+                  "conteudo": { "type": "string", "example": "Conteúdo atualizado..." }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Anotação atualizada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "mensagem": { "type": "string" },
+                    "anotacao": { "$ref": "#/components/schemas/Diario" }
+                  }
+                }
+              }
+            }
+          },
+          "404": { "description": "Anotação não encontrada" }
+        }
+      },
+      "delete": {
+        "tags": ["Diário Emocional"],
+        "summary": "Deletar anotação",
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Anotação deletada com sucesso" },
+          "404": { "description": "Anotação não encontrada" }
+        }
+      }
+    },
+    "/humor": {
+      "post": {
+        "tags": ["Registro de Humor"],
+        "summary": "Registrar ou atualizar humor do dia",
+        "description": "Cria um novo registro de humor ou atualiza o existente se já houver um registro no mesmo dia",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/HumorInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Humor atualizado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "mensagem": { "type": "string" },
+                    "humor": { "$ref": "#/components/schemas/Humor" }
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Humor registrado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "mensagem": { "type": "string" },
+                    "humor": { "$ref": "#/components/schemas/Humor" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Campo pacienteId obrigatório" }
+        }
+      }
+    },
+    "/humor/{pacienteId}": {
+      "get": {
+        "tags": ["Registro de Humor"],
+        "summary": "Listar todos os registros de humor de um paciente",
+        "parameters": [
+          { "in": "path", "name": "pacienteId", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de registros de humor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Humor" }
+                }
+              }
+            }
+          },
+          "500": { "description": "Erro ao buscar registros de humor" }
+        }
+      }
+    },
+    "/humor/{pacienteId}/{data}": {
+      "get": {
+        "tags": ["Registro de Humor"],
+        "summary": "Obter humor de um dia específico",
+        "description": "Busca o registro de humor de uma data específica no formato YYYY-MM-DD",
+        "parameters": [
+          { "in": "path", "name": "pacienteId", "required": true, "schema": { "type": "string" } },
+          { "in": "path", "name": "data", "required": true, "schema": { "type": "string", "format": "date", "example": "2024-01-15" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Registro de humor encontrado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Humor" }
+              }
+            }
+          },
+          "404": { "description": "Nenhum registro encontrado para essa data" }
+        }
+      }
+    },
+    "/humor/{id}": {
+      "delete": {
+        "tags": ["Registro de Humor"],
+        "summary": "Deletar registro de humor",
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Registro de humor deletado com sucesso" },
+          "404": { "description": "Registro de humor não encontrado" }
+        }
+      }
+    },
+    "/atividades": {
+      "post": {
+        "tags": ["Atividades Terapêuticas"],
+        "summary": "Criar nova atividade (psicólogo)",
+        "description": "Psicólogo cria uma atividade para o paciente",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AtividadeInput" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Atividade criada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "mensagem": { "type": "string" },
+                    "atividade": { "$ref": "#/components/schemas/Atividade" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Campos obrigatórios ausentes" }
+        }
+      }
+    },
+    "/atividades/paciente/{pacienteId}": {
+      "get": {
+        "tags": ["Atividades Terapêuticas"],
+        "summary": "Ver atividades do paciente",
+        "description": "Paciente visualiza suas atividades",
+        "parameters": [
+          { "in": "path", "name": "pacienteId", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de atividades do paciente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/Atividade" }
+                }
+              }
+            }
+          },
+          "500": { "description": "Erro ao buscar atividades" }
+        }
+      }
+    },
+    "/atividades/psicologo/{psicologoId}": {
+      "get": {
+        "tags": ["Atividades Terapêuticas"],
+        "summary": "Ver atividades criadas pelo psicólogo",
+        "description": "Psicólogo visualiza todas as atividades que criou",
+        "parameters": [
+          { "in": "path", "name": "psicologoId", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de atividades criadas pelo psicólogo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "allOf": [
+                      { "$ref": "#/components/schemas/Atividade" },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "pacienteId": {
+                            "type": "object",
+                            "properties": {
+                              "nome": { "type": "string" },
+                              "email": { "type": "string" }
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "500": { "description": "Erro ao buscar atividades do psicólogo" }
+        }
+      }
+    },
+    "/atividades/{id}": {
+      "get": {
+        "tags": ["Atividades Terapêuticas"],
+        "summary": "Ver uma atividade específica",
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Atividade encontrada",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Atividade" }
+              }
+            }
+          },
+          "404": { "description": "Atividade não encontrada" }
+        }
+      },
+      "delete": {
+        "tags": ["Atividades Terapêuticas"],
+        "summary": "Deletar atividade",
+        "description": "Psicólogo ou sistema pode deletar atividade",
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Atividade removida com sucesso" },
+          "404": { "description": "Atividade não encontrada" }
+        }
+      }
+    },
+    "/atividades/{id}/progresso": {
+      "put": {
+        "tags": ["Atividades Terapêuticas"],
+        "summary": "Atualizar progresso da atividade",
+        "description": "Paciente atualiza o progresso e pode adicionar observações",
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "progresso": { 
+                    "type": "number", 
+                    "minimum": 0, 
+                    "maximum": 100,
+                    "example": 75,
+                    "description": "Percentual de conclusão (0-100)" 
+                  },
+                  "observacaoPaciente": { 
+                    "type": "string", 
+                    "example": "Consegui fazer o exercício pela manhã",
+                    "description": "Observação opcional do paciente"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Progresso atualizado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "mensagem": { "type": "string" },
+                    "atividade": { "$ref": "#/components/schemas/Atividade" }
+                  }
+                }
+              }
+            }
+          },
+          "404": { "description": "Atividade não encontrada" }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": ["Sistema"],
+        "summary": "Health check do sistema",
+        "description": "Verifica se a API está funcionando",
+        "responses": {
+          "200": {
+            "description": "Sistema funcionando corretamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "OK" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
-  }
+  },
+  "tags": [
+    {
+      "name": "Pacientes",
+      "description": "Operações relacionadas aos pacientes"
+    },
+    {
+      "name": "Profissionais",
+      "description": "Operações relacionadas aos profissionais de saúde"
+    },
+    {
+      "name": "Triagem",
+      "description": "Sistema de triagem inicial dos pacientes"
+    },
+    {
+      "name": "Diário Emocional",
+      "description": "Anotações do diário emocional dos pacientes"
+    },
+    {
+      "name": "Registro de Humor",
+      "description": "Registro diário do humor dos pacientes"
+    },
+    {
+      "name": "Atividades Terapêuticas",
+      "description": "Atividades criadas pelos psicólogos para os pacientes"
+    },
+    {
+      "name": "Sistema",
+      "description": "Endpoints de sistema e monitoramento"
+    }
+  ]
 }
