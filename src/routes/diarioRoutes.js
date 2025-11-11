@@ -7,12 +7,17 @@ const router = express.Router();
 router.post("/", diarioController.criarAnotacao);
 
 // GET /diario/:pacienteId -> retorna todas as anotações de um paciente
-router.get("/:pacienteId", diarioController.obterAnotacoesPorPaciente);
+router.get("/paciente/:pacienteId", diarioController.obterAnotacoesPorPaciente);
 
-// PUT /diario/:id -> atualiza uma anotação específica
+// GET /diario/:idAnotação
+router.get("/:id", diarioController.obterAnotacaoPorId);
+
+// PUT /diario/:idAnotaçao -> atualiza uma anotação específica
 router.put("/:id", diarioController.atualizarAnotacao);
 
-// DELETE /diario/:id -> deleta uma anotação específica
+// DELETE /diario/:idAnotaçao -> deleta uma anotação específica
 router.delete("/:id", diarioController.deletarAnotacao);
+
+
 
 export default router;

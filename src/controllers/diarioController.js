@@ -78,9 +78,28 @@ const deletarAnotacao = async (req, res) => {
   }
 };
 
+// Obter uma anotação específica pelo ID
+const obterAnotacaoPorId = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const anotacao = await Diario.findById(id);
+
+    if (!anotacao) {
+      return res.status(404).json({ erro: "Anotação não encontrada." });
+    }
+
+    res.json(anotacao);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ erro: "Erro ao buscar anotação." });
+  }
+};
+
+
 export default{
     criarAnotacao,
     obterAnotacoesPorPaciente,
     atualizarAnotacao,
-    deletarAnotacao
+    deletarAnotacao, 
+    obterAnotacaoPorId
 }

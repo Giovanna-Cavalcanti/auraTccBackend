@@ -5,6 +5,7 @@ import pacienteRoutes from './routes/pacienteRoutes.js';
 import profissionalRoutes from './routes/profissionalRoutes.js';
 import triagemRoutes from './routes/triagemRoutes.js'
 import diarioRoutes from './routes/diarioRoutes.js';
+import humorRoutes from './routes/humorRoutes.js'
 
 import swaggerUi from "swagger-ui-express";
 import fs from "fs";
@@ -29,7 +30,8 @@ app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use('/api/pacientes', pacienteRoutes);
 app.use('/api/profissionais', profissionalRoutes);
 app.use("/api/triagem", triagemRoutes);
-app.use("/api/diario", diarioRoutes)
+app.use("/api/diario", diarioRoutes);
+app.use("/api/humor", humorRoutes);
 
 // Health Check
 app.get('/health', (req, res) => {
