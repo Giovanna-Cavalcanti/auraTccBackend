@@ -73,6 +73,12 @@ const ProfissionalSchema = new mongoose.Schema({
     maxLength: [200, 'A localização não pode ultrapassar 200 caracteres'],
     default: ''
     },
+    telefone: {
+    type: String,
+    trim: true,
+    maxLength: [20, 'Telefone não pode ultrapassar 20 caracteres'],
+    default: ''
+    },
     dataCadastro: {
     type: Date,
     default: Date.now,

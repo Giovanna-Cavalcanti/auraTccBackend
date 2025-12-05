@@ -3,7 +3,7 @@ import Profissional from '../models/Profissional.js';
 import Paciente from '../models/Paciente.js';
 
 // Campos permitidos para atualização
-const camposPermitidos = ['cpf', 'email', 'nomeCompleto', 'senha', 'tipoAtuacao', 'valorConsulta', 'convenios', 'modalidades','descricao', 'localizacao' ];
+const camposPermitidos = ['cpf', 'email', 'nomeCompleto', 'senha', 'tipoAtuacao', 'valorConsulta', 'convenios', 'modalidades','descricao', 'localizacao', 'telefone' ];
 
 // Criar profissional
 const criarProfissional = async (req, res) => {
@@ -151,7 +151,7 @@ const listarPacientesDoProfissional = async (req, res) => {
 const completarCadastro = async (req, res) => {
   try {
     const { id } = req.params;
-    const { descricao, localizacao } = req.body;
+    const { descricao, localizacao, telefone } = req.body;
 
     const profissional = await Profissional.findById(id);
     if (!profissional) {
@@ -160,6 +160,8 @@ const completarCadastro = async (req, res) => {
 
     profissional.descricao = descricao || profissional.descricao;
     profissional.localizacao = localizacao || profissional.localizacao;
+    profissional.telefone = telefone || profissional.telefone;
+    
     await profissional.save();
 
     const atualizado = profissional.toObject();
